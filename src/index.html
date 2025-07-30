@@ -17,7 +17,10 @@
      <script>
         //settings
         let currentStep = 2;
-        let totalSteps = 6;
+        let totalSteps = 20;
+        let isScrolling = false;
+        let startX = 0;
+        let scrollLeft = 0;
 
         //creating journey html
         function renderJourney(currentStep,totalSteps) {
@@ -74,6 +77,7 @@
 
           renderControls();
           scrollToCurrent();
+          setupSwipeHandlers();
 
         }
 
@@ -83,6 +87,81 @@
           const controls = '<div class="controls"><div class="controls__buttons"><button class="slide-left material-symbols-outlined">arrow_back</button><button class="slide-right material-symbols-outlined">arrow_forward</button></div><div class="controls__scrollbar"><div class="scrollbar__inner"></div></div>';
 
           document.querySelector('.journey').insertAdjacentHTML('afterend',controls);
+        }
+
+        //setup swipe handlers for mobile
+        function setupSwipeHandlers() {
+          const container = document.querySelector('.journey');
+          
+          // Touch events for mobile
+          container.addEventListener('touchstart', handleTouchStart, { passive: false });
+          container.addEventListener('touchmove', handleTouchMove, { passive: false });
+          container.addEventListener('touchend', handleTouchEnd, { passive: false });
+          
+          // Mouse events for desktop
+          container.addEventListener('mousedown', handleMouseDown);
+          container.addEventListener('mousemove', handleMouseMove);
+          container.addEventListener('mouseup', handleMouseUp);
+          container.addEventListener('mouseleave', handleMouseUp);
+          
+          // Prevent default drag behavior
+          container.addEventListener('dragstart', (e) => e.preventDefault());
+        }
+
+        function handleTouchStart(e) {
+          e.preventDefault();
+          const container = document.querySelector('.journey');
+          startX = e.touches[0].pageX - container.offsetLeft;
+          scrollLeft = container.scrollLeft;
+          isScrolling = true;
+        }
+
+        function handleTouchMove(e) {
+          if (!isScrolling) return;
+          e.preventDefault();
+          const container = document.querySelector('.journey');
+          const x = e.touches[0].pageX - container.offsetLeft;
+          const walk = (x - startX) * 2; // Scroll speed multiplier
+          container.scrollLeft = scrollLeft - walk;
+          
+          // Update scrollbar position during swipe
+          triggerScroll(container.scrollLeft);
+        }
+
+        function handleTouchEnd(e) {
+          isScrolling = false;
+          // Final scrollbar update
+          const container = document.querySelector('.journey');
+          triggerScroll(container.scrollLeft);
+        }
+
+        function handleMouseDown(e) {
+          const container = document.querySelector('.journey');
+          startX = e.pageX - container.offsetLeft;
+          scrollLeft = container.scrollLeft;
+          isScrolling = true;
+          container.style.cursor = 'grabbing';
+        }
+
+        function handleMouseMove(e) {
+          if (!isScrolling) return;
+          e.preventDefault();
+          const container = document.querySelector('.journey');
+          const x = e.pageX - container.offsetLeft;
+          const walk = (x - startX) * 2;
+          container.scrollLeft = scrollLeft - walk;
+          
+          // Update scrollbar position during drag
+          triggerScroll(container.scrollLeft);
+        }
+
+        function handleMouseUp(e) {
+          isScrolling = false;
+          const container = document.querySelector('.journey');
+          container.style.cursor = 'grab';
+          
+          // Final scrollbar update
+          triggerScroll(container.scrollLeft);
         }
 
         //create scrollbar/click
@@ -95,14 +174,25 @@
           const scrollWidth = container.offsetWidth / container.scrollWidth;
           const scrollbar = document.querySelector('.scrollbar__inner');
 
+          // Calculate scroll amount based on container width for better mobile support
+          const scrollAmount = Math.min(container.offsetWidth * 0.8, 300);
+
           buttonRight.onclick = function () {
-            const scrollLeft = container.scrollLeft += 500;
-            triggerScroll(scrollLeft);
+            const newScrollLeft = container.scrollLeft + scrollAmount;
+            container.scrollTo({
+              left: newScrollLeft,
+              behavior: 'smooth'
+            });
+            triggerScroll(newScrollLeft);
           };
 
           buttonLeft.onclick = function () {
-            const scrollLeft = container.scrollLeft -= 500;
-            triggerScroll(scrollLeft);
+            const newScrollLeft = container.scrollLeft - scrollAmount;
+            container.scrollTo({
+              left: newScrollLeft,
+              behavior: 'smooth'
+            });
+            triggerScroll(newScrollLeft);
           };
 
           scrollbar.style.left = scrollOffset + '%';
@@ -110,19 +200,33 @@
 
           if(container.scrollWidth > container.offsetWidth) {
               document.querySelector('.controls').style.display = 'block';
+              container.style.justifyContent = 'start';
+
+          } else {
+            container.style.justifyContent = 'center';
           }
         }
  
         //ensure current step starts in view
         function scrollToCurrent() {
           const container = document.querySelector('.journey');
-          const currentPlacementX = document.querySelector('.current').getBoundingClientRect().left;
+          const currentElement = document.querySelector('.current');
+          
+          if (!currentElement) {
+            triggerScroll(0);
+            return;
+          }
+          
+          const currentPlacementX = currentElement.getBoundingClientRect().left;
+          const containerRect = container.getBoundingClientRect();
 
-          if( currentPlacementX > container.offsetWidth) {
-              container.scrollLeft = currentPlacementX;
-              triggerScroll(currentPlacementX);
+          if( currentPlacementX > containerRect.width) {
+              container.scrollTo({
+                left: currentPlacementX - containerRect.width / 2,
+                behavior: 'smooth'
+              });
+              triggerScroll(currentPlacementX - containerRect.width / 2);
           } else {
-            container.style.justifyContent = 'center';
             triggerScroll(0);
           }
         }

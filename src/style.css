@@ -8,7 +8,7 @@
   --line-rotation: 56.5deg;
   --line-rotation-2: 50deg;
   --line-rotation-3: 27.5deg;
-  --line-length: calc(100% + 5px);
+  --line-length: calc(100% + 40px);
   --line-length-2: calc(100% + 10px);
   --line-length-3: calc(100% + 30px);
   --line-translate-x: 50%; 
@@ -64,6 +64,14 @@ body {
   counter-reset: page;
   scroll-behavior: smooth;
   height: var(--journey-height);
+  cursor: grab;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  touch-action: pan-x; /* Allow horizontal panning */
+  user-select: none; /* Prevent text selection during drag */
+}
+
+.journey:active {
+  cursor: grabbing;
 }
 
 .blur::before {
