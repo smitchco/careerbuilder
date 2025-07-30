@@ -16,11 +16,12 @@
     
      <script>
         //settings
-        let currentStep = 2;
-        let totalSteps = 20;
+        let currentStep = 10;
+        let totalSteps = 13;
         let isScrolling = false;
         let startX = 0;
         let scrollLeft = 0;
+        let scrollUpdateTimeout = null; // For throttling scrollbar updates
 
         //creating journey html
         function renderJourney(currentStep,totalSteps) {
@@ -124,8 +125,11 @@
           const walk = (x - startX) * 2; // Scroll speed multiplier
           container.scrollLeft = scrollLeft - walk;
           
-          // Update scrollbar position during swipe
-          triggerScroll(container.scrollLeft);
+          // Throttle scrollbar updates during swipe
+          if (scrollUpdateTimeout) clearTimeout(scrollUpdateTimeout);
+          scrollUpdateTimeout = setTimeout(() => {
+            triggerScroll(container.scrollLeft);
+          }, 16); // ~60fps
         }
 
         function handleTouchEnd(e) {
@@ -151,8 +155,11 @@
           const walk = (x - startX) * 2;
           container.scrollLeft = scrollLeft - walk;
           
-          // Update scrollbar position during drag
-          triggerScroll(container.scrollLeft);
+          // Throttle scrollbar updates during drag
+          if (scrollUpdateTimeout) clearTimeout(scrollUpdateTimeout);
+          scrollUpdateTimeout = setTimeout(() => {
+            triggerScroll(container.scrollLeft);
+          }, 16); // ~60fps
         }
 
         function handleMouseUp(e) {
@@ -166,97 +173,132 @@
 
         //create scrollbar/click
         function triggerScroll(scrollLeft) {
-          const container = document.querySelector('.journey');
-          const buttonRight = document.querySelector('.slide-right');
-          const buttonLeft = document.querySelector('.slide-left');
+          try {
+            const container = document.querySelector('.journey');
+            const buttonRight = document.querySelector('.slide-right');
+            const buttonLeft = document.querySelector('.slide-left');
 
-          const scrollOffset = scrollLeft / container.scrollWidth * 100;
-          const scrollWidth = container.offsetWidth / container.scrollWidth;
-          const scrollbar = document.querySelector('.scrollbar__inner');
+            const scrollOffset = scrollLeft / container.scrollWidth * 100;
+            const scrollWidth = container.offsetWidth / container.scrollWidth;
+            const scrollbar = document.querySelector('.scrollbar__inner');
 
-          // Calculate scroll amount based on container width for better mobile support
-          const scrollAmount = Math.min(container.offsetWidth * 0.8, 300);
+            // Calculate scroll amount based on container width for better mobile support
+            const scrollAmount = Math.min(container.offsetWidth * 0.8, 300);
 
-          buttonRight.onclick = function () {
-            const newScrollLeft = container.scrollLeft + scrollAmount;
-            container.scrollTo({
-              left: newScrollLeft,
-              behavior: 'smooth'
-            });
-            triggerScroll(newScrollLeft);
-          };
+            buttonRight.onclick = function () {
+              const newScrollLeft = container.scrollLeft + scrollAmount;
+              container.scrollTo({
+                left: newScrollLeft,
+                behavior: 'smooth'
+              });
+              triggerScroll(newScrollLeft);
+            };
 
-          buttonLeft.onclick = function () {
-            const newScrollLeft = container.scrollLeft - scrollAmount;
-            container.scrollTo({
-              left: newScrollLeft,
-              behavior: 'smooth'
-            });
-            triggerScroll(newScrollLeft);
-          };
+            buttonLeft.onclick = function () {
+              const newScrollLeft = container.scrollLeft - scrollAmount;
+              container.scrollTo({
+                left: newScrollLeft,
+                behavior: 'smooth'
+              });
+              triggerScroll(newScrollLeft);
+            };
 
-          scrollbar.style.left = scrollOffset + '%';
-          scrollbar.style.width = scrollWidth * 200 + 'px';
+            scrollbar.style.left = scrollOffset + '%';
+            scrollbar.style.width = scrollWidth * 200 + 'px';
 
-          if(container.scrollWidth > container.offsetWidth) {
-              document.querySelector('.controls').style.display = 'block';
-              container.style.justifyContent = 'start';
+            if(container.scrollWidth > container.offsetWidth) {
+                document.querySelector('.controls').style.display = 'block';
+                container.style.justifyContent = 'start';
 
-          } else {
-            container.style.justifyContent = 'center';
+            } else {
+              container.style.justifyContent = 'center';
+            }
+          } catch (error) {
+            console.error('Error in triggerScroll:', error);
           }
         }
  
         //ensure current step starts in view
         function scrollToCurrent() {
-          const container = document.querySelector('.journey');
-          const currentElement = document.querySelector('.current');
-          
-          if (!currentElement) {
-            triggerScroll(0);
-            return;
-          }
-          
-          const currentPlacementX = currentElement.getBoundingClientRect().left;
-          const containerRect = container.getBoundingClientRect();
+          try {
+            const container = document.querySelector('.journey');
+            const currentElement = document.querySelector('.current');
+            
+            if (!currentElement) {
+              triggerScroll(0);
+              return;
+            }
+            
+            const currentPlacementX = currentElement.getBoundingClientRect().left;
+            const containerRect = container.getBoundingClientRect();
 
-          if( currentPlacementX > containerRect.width) {
-              container.scrollTo({
-                left: currentPlacementX - containerRect.width / 2,
-                behavior: 'smooth'
-              });
-              triggerScroll(currentPlacementX - containerRect.width / 2);
-          } else {
-            triggerScroll(0);
+            if( currentPlacementX > containerRect.width) {
+                container.scrollTo({
+                  left: currentPlacementX - containerRect.width / 2,
+                  behavior: 'smooth'
+                });
+                triggerScroll(currentPlacementX - containerRect.width / 2);
+            } else {
+              triggerScroll(0);
+            }
+          } catch (error) {
+            console.error('Error in scrollToCurrent:', error);
           }
         }
 
         //edit button controls
         function changeJourney() {
-          currentStep = document.querySelector('input[name=currentStep]').value;
-          totalSteps = document.querySelector('input[name=totalSteps]').value;
+          try {
+            currentStep = parseInt(document.querySelector('input[name=currentStep]').value) || 1;
+            totalSteps = parseInt(document.querySelector('input[name=totalSteps]').value) || 6;
 
-          //remove current
-          document.querySelector('.journey').innerHTML = '';
-          document.querySelector('.controls').remove();
+            //remove current
+            document.querySelector('.journey').innerHTML = '';
+            document.querySelector('.controls').remove();
 
-          //recreate
-          renderJourney(currentStep,totalSteps);
+            //recreate
+            renderJourney(currentStep,totalSteps);
+          } catch (error) {
+            console.error('Error in changeJourney:', error);
+          }
         }
         
-        renderJourney(currentStep, totalSteps);
+        // Initialize with error handling
+        try {
+          renderJourney(currentStep, totalSteps);
+        } catch (error) {
+          console.error('Error initializing journey:', error);
+        }
+
+        // Performance monitoring
+        function logPerformance() {
+          const container = document.querySelector('.journey');
+          const steps = document.querySelectorAll('.step');
+          console.log('Performance Info:', {
+            totalSteps: steps.length,
+            containerWidth: container?.offsetWidth,
+            scrollWidth: container?.scrollWidth,
+            memoryUsage: performance.memory ? {
+              used: Math.round(performance.memory.usedJSHeapSize / 1024 / 1024) + 'MB',
+              total: Math.round(performance.memory.totalJSHeapSize / 1024 / 1024) + 'MB'
+            } : 'Not available'
+          });
+        }
+
+        // Log performance after initialization
+        setTimeout(logPerformance, 2000);
 
       </script>
 
       <div class="edits">
         <div>
           <label>Current Step</label>
-          <input type="number" value="2" name="currentStep"/>
+          <input type="tel" value="2" name="currentStep"/>
         </div>
 
         <div>
           <label>Total Steps</label>
-          <input type="number" value="6" name="totalSteps"/>
+          <input type="tel" value="6" name="totalSteps"/>
         </div>
         <div>
           <button onclick="changeJourney()">Reset</button>

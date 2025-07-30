@@ -2,15 +2,16 @@
   --journey-height: 275px;
   --journey-pad: 24px;
 
-  --step-gap: 0px;
+  --step-gap: 12px;
   --step-transition: 20%;
 
-  --line-rotation: 56.5deg;
-  --line-rotation-2: 50deg;
+  --line-rotation: 52.5deg;
+  --line-rotation-2: 40deg;
   --line-rotation-3: 27.5deg;
-  --line-length: calc(100% + 40px);
-  --line-length-2: calc(100% + 10px);
-  --line-length-3: calc(100% + 30px);
+  --line-length: calc(100% + 50px);
+  --line-length-2: calc(100% + 55px);
+  --line-length-3: calc(100% + 35px);
+  --line-length-4: calc(100% + 50px);
   --line-translate-x: 50%; 
 
   --badge-square: 32px;
@@ -34,9 +35,10 @@
     --line-rotation: 45deg;
     --line-rotation-2: 33.5deg;
     --line-rotation-3: 22deg;
-    --line-length: calc(100% + 110px); 
-    --line-length-2: calc(100% + 50px);
-    --line-length-3: calc(100% + 67px);
+    --line-length: calc(100% + 60px); 
+    --line-length-2: calc(100% + 90px);
+    --line-length-3: calc(100% + 60px);
+    --line-length-4: calc(100% + 60px);
     --line-translate-x: 60%; 
 
     --badge-square: 48px;
@@ -116,6 +118,7 @@ body {
   position: relative;
   flex: 1;
   animation: animateDown ease-in-out .5s forwards 1s;
+  will-change: transform; 
 } 
 
 .journey .step:nth-child(2n) {
@@ -125,7 +128,7 @@ body {
 .journey .step:nth-child(3n) {
   animation: animateThree ease-in-out .5s forwards 1s;
 }
-
+ 
 .journey .path {
   position: absolute;
   overflow: visible;
@@ -140,16 +143,17 @@ body {
 
 .step + .step:nth-child(2n + 1) .path {
   transform: translate(var(--line-translate-x), 20px) rotate(var(--line-rotation));
+  width: var(--line-length-2);
 }
 
 .step + .step:nth-child(3n + 1) .path {
   transform: translate(var(--line-translate-x), 20px) rotate(var(--line-rotation-2));
-  width: var(--line-length-2);
+  width: var(--line-length-3);
 }
 
 .step:nth-child(2n + 1) + .step:nth-child(3n + 1) .path {
   transform: translate(var(--line-translate-x), 20px) rotate(calc(var(--line-rotation-2) * -1));
-  width: var(--line-length-2);
+  width: var(--line-length-3);
 }
 
 .step:nth-child(2n + 1) + .step .path {
@@ -164,6 +168,8 @@ body {
 
 .step:nth-child(3n + 1) + .step .path {
   transform: translate(var(--line-translate-x), 20px) rotate(calc(var(--line-rotation) * -1));
+  width: var(--line-length-4);
+
 }
 
 .journey .path svg {
@@ -208,7 +214,7 @@ body {
   font-size: 16px;
   background: rgba(var(--color-blue-dark), .75);
   position: relative;
-  z-index: 1;
+  z-index: 3;
   margin-bottom: 8px;
 }
 
@@ -407,19 +413,20 @@ body {
 }
 
 
-
-
 /* other stuff you probably don't need */
 
 .edits {
-  padding: 64px;
+  padding: 32px;
 }
 .edits div {
   padding: 12px;
+  display: block;
 }
 
 .edits label, .edits input {
   display: block;
+  font-size: 16px;
+  width: 100%;
 }
 
 .edits label {
