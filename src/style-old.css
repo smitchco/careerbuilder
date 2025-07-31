@@ -1,6 +1,6 @@
 :root {
-  --journey-height: 350px;
-  --journey-pad: 40px;
+  --journey-height: 275px;
+  --journey-pad: 24px;
 
   --step-gap: 12px;
   --step-transition: 20%;
@@ -26,7 +26,7 @@
 
 @media (min-width: 768px) {
   :root {
-    --journey-height: 480px;
+    --journey-height: 320px;
     --journey-pad: 64px;
 
     --step-gap: 64px;
@@ -49,11 +49,6 @@ html, body {
   padding: 24px 0; 
   margin: 0; 
   background: rgb(var(--color-blue-xdark));
-  box-sizing: border-box;
-}
-
-* {
-  box-sizing: border-box;
 }
 
 body {
@@ -75,14 +70,13 @@ body {
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x;
   user-select: none;
-  position: relative;
 }
 
 .journey:active {
   cursor: grabbing;
 }
 
-.journey::before {
+.blur::before {
   content: '';
   background: rgba(var(--color-purple), .75);
   position: absolute;
@@ -95,7 +89,7 @@ body {
   transform: scale(1.25);
 }
 
-.journey::after {
+.blur::after {
   content: '';
   background: rgba(233, 255, 228,.125);
   position: absolute;
@@ -123,62 +117,87 @@ body {
   align-items: center;
   position: relative;
   flex: 1;
-  animation: stepAnimation ease-in-out .5s forwards;
-  will-change: transform;
-  transform: translateY(0);
-  z-index: 2;   
+  animation: animateDown ease-in-out .5s forwards 1s;
+  will-change: transform; 
 } 
-   
-.line {
+
+.journey .step:nth-child(2n) {
+  animation: animateUp ease-in-out .5s forwards 1s;
+}
+
+.journey .step:nth-child(3n) {
+  animation: animateThree ease-in-out .5s forwards 1s;
+}
+ 
+.journey .path {
   position: absolute;
-  top: 0;
-  height: 100%;
-  left: calc(var(--step-gap) * 4);
-  display: block;
-  width: calc(100% - 100px);
+  overflow: visible;
+  z-index: 0;
+  transform-origin: left top;
 }
 
-@media (min-width: 768px) {
-  .line {
-    left: var(--step-gap);
-    width: calc(100% - (var(--step-gap) * 2));
-  }
+.step .path {
+  transform: translate(var(--line-translate-x), 20px) rotate(calc(var(--line-rotation) * -1));
+  width: var(--line-length);
 }
 
-.line svg {
-  width: 100%;
-  height: 100%;
+.step + .step:nth-child(2n + 1) .path {
+  transform: translate(var(--line-translate-x), 20px) rotate(var(--line-rotation));
+  width: var(--line-length-2);
 }
 
-.line svg polyline {
-  stroke-width: .25;
-  stroke: rgb(var(--color-cyan));
-  stroke-linecap: butt;
-  stroke-linejoin: round;
-  fill: none;
+.step + .step:nth-child(3n + 1) .path {
+  transform: translate(var(--line-translate-x), 20px) rotate(var(--line-rotation-2));
+  width: var(--line-length-3);
 }
 
-.line svg polyline.inprogress {
-  stroke-opacity: 0.125;
-  stroke-dasharray: .5 .5;
+.step:nth-child(2n + 1) + .step:nth-child(3n + 1) .path {
+  transform: translate(var(--line-translate-x), 20px) rotate(calc(var(--line-rotation-2) * -1));
+  width: var(--line-length-3);
 }
 
-.line svg polyline.completeline {
-  transition: all 1.5s ease-in-out;
-  stroke-opacity: 1; 
+.step:nth-child(2n + 1) + .step .path {
+  transform: translate(var(--line-translate-x), 20px) rotate(var(--line-rotation-3));
+  width: var(--line-length-3);
 }
 
-.line svg polyline.completeline.active {
-  stroke-dashoffset: 0!important;
+.step:nth-child(3n + 1) + .step:nth-child(2n + 1) .path {
+  transform: translate(var(--line-translate-x), 20px) rotate(calc(var(--line-rotation-3) * -1));
+  width: var(--line-length-3);
 }
 
-@media (min-width: 768px) {
+.step:nth-child(3n + 1) + .step .path {
+  transform: translate(var(--line-translate-x), 20px) rotate(calc(var(--line-rotation) * -1));
+  width: var(--line-length-4);
+
 }
 
 .journey .path svg {
   width: 100%;
   opacity: 0; 
   animation: fadeIn ease-out forwards .5s 2s;
+}
+
+.journey svg line {
+  stroke: rgb(var(--color-cyan)); 
+  stroke-opacity: 0.125;
+  stroke-width: 4;
+  stroke-dasharray: 6 6;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+}
+
+@media (min-width: 768px) {
+  .journey svg line {
+    stroke-width: 8;
+    stroke-dasharray: 8 8;
+  } 
+}
+
+.journey .step.complete svg line {
+  stroke: rgb(var(--color-cyan)); 
+  stroke-opacity: 1;
+  stroke-dasharray: 0;
 }
 
 .journey .badge {
@@ -230,12 +249,12 @@ body {
   z-index: 3;
   width: 70px;
   height: auto;
-  top: 50px;
+  top: 55px;
 }
 
 @media (min-width: 768px) {
   .journey .destination {
-    top: 55px;
+    top: 40px;
     width: 100px;
   }
 }
@@ -303,9 +322,7 @@ body {
   justify-content: center;
   margin-top: -80px;
   position: relative;
-  display: none;
-  z-index: 4; 
-  bottom: 0;  
+  display: none; 
 }
 
 .controls buttons {
@@ -347,9 +364,30 @@ body {
   transition: all .5s ease-in-out;
 }
 
-@keyframes stepAnimation {
+@keyframes animateUp {
   from {
     transform: translateY(0);
+  }
+  to {
+    transform: translateY(var(--step-transition));
+  }
+}
+
+@keyframes animateDown {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY( calc(var(--step-transition) * -.5));
+  }
+}
+
+@keyframes animateThree{
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY( calc(var(--step-transition) * -1.2));
   }
 }
 
