@@ -91,13 +91,13 @@
 
             const journeyHeight = document.querySelector('.journey').offsetHeight;
             const stepTransformY = journeyHeight / 2 * (verticalPosition - 5) / 5;
-
             const offset = (verticalPosition > defaultPosition && verticalPosition != defaultPosition) ? -24 : 0;
+            const randomImageNumber = Math.floor(Math.random() * 4) + 1;
 
             polyPoints +=  (increment * i) + ' ' + verticalPosition + ' ';
             initPolyPoints +=  (increment * i) + ' ' + defaultPosition + ' ';
 
-            if(stepComplete) {
+            if(stepComplete || stepCurrent) {
               polyPointsComplete +=  (increment * i) + ' ' + verticalPosition + ' ';
               initPolyPointsComplete += increment * i + ' ' + defaultPosition + ' ';
             }
@@ -112,7 +112,7 @@
 
             if(stepComplete) {
               
-              content += '<div class="badge material-symbols-outlined">check</div><img src="./img/journey-stone-complete.svg" class="stone"/>';
+              content += '<div class="badge material-symbols-outlined">check</div><img src="./img/journey-stone-' + randomImageNumber + '-complete.svg" class="stone"/>';
           
             } else if (stepLast) {
 
@@ -120,7 +120,7 @@
 
             } else {
 
-              content += '<div class="badge"></div><img src="./img/journey-stone.svg" class="stone"/>';
+              content += '<div class="badge"></div><img src="./img/journey-stone-' + randomImageNumber + '.svg" class="stone"/>';
           
             }
 
