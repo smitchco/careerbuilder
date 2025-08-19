@@ -141,7 +141,12 @@
           const polyline = document.createElementNS(svgNS, "polyline");
           polyline.setAttribute("points", polyPointsComplete); 
           
+          // Temporarily add to DOM to calculate length, then remove
+          const tempSvg = document.createElementNS(svgNS, "svg");
+          tempSvg.appendChild(polyline);
+          document.body.appendChild(tempSvg);
           const currentLineLength = polyline.getTotalLength();
+          document.body.removeChild(tempSvg);
 
           const svg = '<div class="line"><svg viewBox="0 0 100 10" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline class="inprogress" points="' + initPolyPoints + '"><animate fill="freeze" dur="0.5s" attributeName="points" begin="0s"   to="' + polyPoints + '"/></polyline><polyline class="completeline"  points="' + initPolyPointsComplete + '" stroke-dasharray="' + currentLineLength + '" stroke-dashoffset="' + currentLineLength + '"><animate fill="freeze" dur="0.5s" begin="0s" attributeName="points" to="' + polyPointsComplete + '"/></polyline></svg></div>';
 
